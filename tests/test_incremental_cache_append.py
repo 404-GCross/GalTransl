@@ -10,17 +10,20 @@ class IncrementalCacheAppendTests(unittest.IsolatedAsyncioTestCase):
     async def test_batch_translate_saves_only_incremental_results(self) -> None:
         captured_batch_sizes: list[int] = []
 
-        async def fake_save_trans_cache_to_json(trans_list, cache_file_path, post_save=False):
+        async def fake_save_trans_cache_to_json(trans_list, cache_file_path, post_save=False, project_dir=""):
             captured_batch_sizes.append(len(trans_list))
 
         class DummyTranslator:
             skipH = False
             last_file_name = ""
             save_steps = 1
-            pj_config = SimpleNamespace(non_interactive=True, print_translation_log_in_terminal=False)
+            pj_config = SimpleNamespace(non_interactive=True, print_translation_log_in_terminal=False, getProjectDir=lambda: "")
 
             def reset_conversation(self):
                 return None
+
+            def getProjectDir(self):
+                return ""
 
             async def translate(self, trans_list_split, dic_prompt, proofread=False):
                 return len(trans_list_split), trans_list_split

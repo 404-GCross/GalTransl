@@ -68,6 +68,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 stop_event=None,
                 getProjectDir=lambda: "",
             ),
+            _coerce_positive_int=staticmethod(BaseTranslate._coerce_positive_int),
             _is_stop_requested=lambda _: False,
             _wait_for_global_rpm_slot=AsyncMock(return_value=None),
             _interruptible_sleep=AsyncMock(return_value=None),
@@ -115,6 +116,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 stop_event=None,
                 getProjectDir=lambda: "",
             ),
+            _coerce_positive_int=staticmethod(BaseTranslate._coerce_positive_int),
             _is_stop_requested=lambda _: False,
             _wait_for_global_rpm_slot=AsyncMock(return_value=None),
             _interruptible_sleep=AsyncMock(return_value=None),
@@ -161,6 +163,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 stop_event=None,
                 getProjectDir=lambda: "",
             ),
+            _coerce_positive_int=staticmethod(BaseTranslate._coerce_positive_int),
             _is_stop_requested=lambda _: False,
             _wait_for_global_rpm_slot=AsyncMock(return_value=None),
             _interruptible_sleep=AsyncMock(return_value=None),
@@ -210,6 +213,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 stop_event=None,
                 getProjectDir=lambda: "",
             ),
+            _coerce_positive_int=staticmethod(BaseTranslate._coerce_positive_int),
             _is_stop_requested=lambda _: False,
             _wait_for_global_rpm_slot=AsyncMock(return_value=None),
             _interruptible_sleep=AsyncMock(return_value=None),
@@ -299,6 +303,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 non_interactive=True,
                 getProjectDir=lambda: "",
             ),
+            _coerce_positive_int=staticmethod(BaseTranslate._coerce_positive_int),
             _is_stop_requested=lambda _: False,
             _wait_for_global_rpm_slot=AsyncMock(return_value=None),
             _interruptible_sleep=AsyncMock(return_value=None),
@@ -340,6 +345,7 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
         translator.restore_context = lambda trans_list, num_pre_request, filename="": None
         translator._check_stop_requested = lambda: None
         translator._record_runtime_success = lambda filename, trans: None
+        translator.max_api_retries = 6
 
         async def fake_ask_chatbot(**kwargs):
             translator._last_chatbot_model_name = "stream-model"
@@ -366,11 +372,23 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
         class DummyTranslator:
             skipH = False
             save_steps = 999
+            dynamic_num_per_request = False
+            _coerce_positive_int = staticmethod(BaseTranslate._coerce_positive_int)
 
             def __init__(self) -> None:
                 self.pj_config = SimpleNamespace(bar=DummyBar(), stop_event=None)
 
             def _check_stop_requested(self) -> None:
+                return None
+
+            def _get_effective_num_per_request(self, configured_value: int, proofread: bool = False) -> int:
+                return BaseTranslate._get_effective_num_per_request(self, configured_value, proofread)
+
+            _build_idx_tip = staticmethod(BaseTranslate._build_idx_tip)
+            _merge_problem_message = staticmethod(BaseTranslate._merge_problem_message)
+            _append_parse_failure_fallback_results = BaseTranslate._append_parse_failure_fallback_results
+
+            def _update_dynamic_num_per_request(self, *args, **kwargs) -> None:
                 return None
 
             def _record_runtime_success(self, filename: str, trans: CSentense) -> None:
@@ -402,6 +420,8 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
         class DummyTranslator:
             skipH = False
             save_steps = 999
+            dynamic_num_per_request = False
+            _coerce_positive_int = staticmethod(BaseTranslate._coerce_positive_int)
 
             def __init__(self) -> None:
                 self.pj_config = SimpleNamespace(bar=DummyBar(), stop_event=None)
@@ -410,7 +430,11 @@ class TranslateRefactorRegressionTests(unittest.IsolatedAsyncioTestCase):
                 return None
 
             _build_idx_tip = staticmethod(BaseTranslate._build_idx_tip)
+            _merge_problem_message = staticmethod(BaseTranslate._merge_problem_message)
             _append_parse_failure_fallback_results = BaseTranslate._append_parse_failure_fallback_results
+
+            def _get_effective_num_per_request(self, configured_value: int, proofread: bool = False) -> int:
+                return BaseTranslate._get_effective_num_per_request(self, configured_value, proofread)
 
             def _update_dynamic_num_per_request(self, *args, **kwargs) -> None:
                 return None

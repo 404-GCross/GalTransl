@@ -19,6 +19,13 @@ from GalTransl import TRANSLATOR_SUPPORTED, INPUT_FOLDERNAME, OUTPUT_FOLDERNAME,
 from GalTransl.Service import JobSpec, JobState, create_job_state, run_job
 from GalTransl.AppSettings import load_app_settings, save_app_settings
 from GalTransl.DefaultProjectConfig import DEFAULT_PROJECT_CONFIG_YAML
+from GalTransl.RuntimePaths import (
+    BUNDLED_DICT_SEED_MARKER,
+    get_active_dict_dir,
+    get_plugins_dir,
+    resolve_dict_dir,
+    get_translation_guidelines_dir,
+)
 from GalTransl.ProblemFilter import filter_problem_text
 from GalTransl.Backend.Prompts import (
     FORGAL_JSON_SYSTEM_PROMPT,
@@ -236,7 +243,7 @@ def _collect_project_dict_payload(project_dir: str, config_name: str) -> dict[st
 
 
 def _common_dict_directory() -> str:
-    return os.path.abspath("Dict")
+    return str(get_active_dict_dir())
 
 
 def _ensure_project_dict_file_configured(project_dir: str, config_name: str, category: str, filename: str) -> None:
@@ -319,7 +326,8 @@ def _collect_common_dict_payload() -> dict[str, Any]:
     files = [
         name
         for name in sorted(os.listdir(dict_dir))
-        if os.path.isfile(os.path.join(dict_dir, name)) and name != COMMON_DICT_CATEGORY_MAP
+        if os.path.isfile(os.path.join(dict_dir, name))
+        and name not in {COMMON_DICT_CATEGORY_MAP, BUNDLED_DICT_SEED_MARKER}
     ]
 
     pre_files: list[str] = []
@@ -445,7 +453,7 @@ def _list_problem_types() -> list[dict[str, str]]:
 
 def _list_translation_guidelines() -> list[str]:
     """List translation guideline filenames under the ``translation_guidelines`` folder."""
-    guidelines_dir = os.path.abspath("translation_guidelines")
+    guidelines_dir = str(get_translation_guidelines_dir())
     if not os.path.isdir(guidelines_dir):
         return []
     result: list[str] = []
@@ -461,7 +469,7 @@ def _list_translation_guidelines() -> list[str]:
 
 def _scan_plugins() -> list[dict[str, Any]]:
     """Scan the plugins directory and return plugin metadata."""
-    plugins_dir = os.path.abspath("plugins")
+    plugins_dir = str(get_plugins_dir())
     result = []
     if not os.path.isdir(plugins_dir):
         return result
@@ -1516,10 +1524,7 @@ def build_handler(registry: JobRegistry):
                     data = _read_yaml_file(config_path)
                     dict_cfg = data.get("dictionary", {})
                     default_folder = dict_cfg.get("defaultDictFolder", "Dict")
-                    if os.path.isabs(default_folder):
-                        dict_base = default_folder
-                    else:
-                        dict_base = os.path.abspath(default_folder)
+                    dict_base = str(resolve_dict_dir(default_folder))
                     result = {
                         "project_dir": project_dir,
                         "default_dict_folder": default_folder,

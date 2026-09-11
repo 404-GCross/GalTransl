@@ -21,3 +21,5 @@ app_settings.json
 galtransl_backend.spec
 /build
 /dist
+desktop/src-tauri/binaries/
+desktop/src-tauri/.tauri-linux-build.json

@@ -1,0 +1,6 @@
+source_repository=404-GCross/GalTransl
+source_commit=2fbb0d7e6548d28f30b2b7ef25aadd2efacc6546
+source_ref=main
+workflow_run=5
+built_at_utc=2026-09-11T15:20:29Z
+architecture=x86_64

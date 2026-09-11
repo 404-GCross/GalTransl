@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
+    env:
+      PYTHONPATH: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -58,7 +60,7 @@ jobs:
           pip install pytest
 
       - name: Run Python tests
-        run: pytest -q
+        run: python -m pytest -q
 
       - name: Install frontend dependencies and build
         working-directory: desktop

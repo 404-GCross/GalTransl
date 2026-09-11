@@ -15,6 +15,13 @@ if [[ ! -d "$ARTIFACT_DIR" ]]; then
   exit 1
 fi
 
+remote_url="${SERVER_URL}/${GITHUB_REPOSITORY}.git"
+if ! git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
+  ls-remote --exit-code --heads "$remote_url" "$BRANCH_NAME" >/dev/null 2>&1; then
+  echo "remote branch '$BRANCH_NAME' does not exist; create it before running this workflow" >&2
+  exit 1
+fi
+
 branch_dir="$(mktemp -d "${RUNNER_TEMP:-/tmp}/galtransl-linux-branch.XXXXXX")"
 git init -b "$BRANCH_NAME" "$branch_dir"
 
@@ -58,7 +65,7 @@ git -C "$branch_dir" config user.name "github-actions[bot]"
 git -C "$branch_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 git -C "$branch_dir" add -A
 git -C "$branch_dir" commit -m "Linux build ${GITHUB_SHA:0:7} (run ${GITHUB_RUN_NUMBER})"
-git -C "$branch_dir" remote add origin "${SERVER_URL}/${GITHUB_REPOSITORY}.git"
+git -C "$branch_dir" remote add origin "$remote_url"
 git -C "$branch_dir" \
   -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
   push --force origin "HEAD:${BRANCH_NAME}"

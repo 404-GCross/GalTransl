@@ -43,12 +43,21 @@ This branch is generated automatically by the **Linux x86_64** GitHub Actions wo
 - Supported architecture: \`x86_64\`
 - Package formats: \`.deb\`, \`.rpm\`, \`.AppImage.xz\`, \`.tar.gz\`
 
-For the AppImage, extract and run:
+For a single AppImage.xz file, run:
 
 \`\`\`bash
 xz -dk GalTransl_*_linux_x86_64.AppImage.xz
 chmod +x GalTransl_*_linux_x86_64.AppImage
 ./GalTransl_*_linux_x86_64.AppImage
+\`\`\`
+
+If split \`.part-*\` files are present, merge them first:
+
+\`\`\`bash
+cat GalTransl_*_linux_x86_64.AppImage.xz.part-* > GalTransl_7.4.0_linux_x86_64.AppImage.xz
+xz -dk GalTransl_7.4.0_linux_x86_64.AppImage.xz
+chmod +x GalTransl_7.4.0_linux_x86_64.AppImage
+./GalTransl_7.4.0_linux_x86_64.AppImage
 \`\`\`
 
 Do not edit files on this branch manually. New builds replace the previous contents.

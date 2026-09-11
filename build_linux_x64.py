@@ -159,8 +159,23 @@ def compress_appimage() -> None:
     run(["xz", "-T0", "-6", "-k", "-f", str(appimage)])
     compressed = appimage.with_suffix(appimage.suffix + ".xz")
     if compressed.stat().st_size >= 100 * 1024 * 1024:
-        raise SystemExit(f"compressed AppImage still exceeds GitHub's 100 MiB limit: {compressed}")
-    print(f"compressed AppImage: {compressed}")
+        run(
+            [
+                "split",
+                "-b",
+                "90M",
+                "-d",
+                "-a",
+                "2",
+                str(compressed),
+                f"{compressed}.part-",
+            ]
+        )
+        compressed.unlink()
+        parts = sorted(RELEASE_DIR.glob(f"{compressed.name}.part-*"))
+        print("split AppImage into:", ", ".join(part.name for part in parts))
+    else:
+        print(f"compressed AppImage: {compressed}")
 
 
 def copy_portable_frontend() -> Path:

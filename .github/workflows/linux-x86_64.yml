@@ -104,6 +104,7 @@ jobs:
             release/*.deb
             release/*.rpm
             release/*.AppImage
+            release/*.AppImage.xz
             release/*.tar.gz
           if-no-files-found: error
 

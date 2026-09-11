@@ -26,7 +26,7 @@ fi
 branch_dir="$(mktemp -d "${RUNNER_TEMP:-/tmp}/galtransl-linux-branch.XXXXXX")"
 git init -b "$BRANCH_NAME" "$branch_dir"
 
-find "$ARTIFACT_DIR" -maxdepth 2 -type f -exec cp -f {} "$branch_dir/" \;
+find "$ARTIFACT_DIR" -maxdepth 2 -type f ! -name '*.AppImage' -exec cp -f {} "$branch_dir/" \;
 
 if ! compgen -G "$branch_dir/*" >/dev/null; then
   echo "no artifacts were downloaded" >&2
@@ -41,7 +41,15 @@ This branch is generated automatically by the **Linux x86_64** GitHub Actions wo
 - Source commit: \`${GITHUB_SHA}\`
 - Workflow run: \`${GITHUB_RUN_NUMBER}\`
 - Supported architecture: \`x86_64\`
-- Package formats: \`.deb\`, \`.rpm\`, \`.AppImage\`, \`.tar.gz\`
+- Package formats: \`.deb\`, \`.rpm\`, \`.AppImage.xz\`, \`.tar.gz\`
+
+For the AppImage, extract and run:
+
+\`\`\`bash
+xz -dk GalTransl_*_linux_x86_64.AppImage.xz
+chmod +x GalTransl_*_linux_x86_64.AppImage
+./GalTransl_*_linux_x86_64.AppImage
+\`\`\`
 
 Do not edit files on this branch manually. New builds replace the previous contents.
 EOF

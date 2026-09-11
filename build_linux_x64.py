@@ -45,7 +45,7 @@ def ensure_platform() -> None:
 
 
 def ensure_build_dependencies() -> None:
-    required_commands = ["npm", "npx", "cargo", "pkg-config"]
+    required_commands = ["npm", "npx", "cargo", "pkg-config", "xz"]
     missing_commands = [command for command in required_commands if shutil.which(command) is None]
     if missing_commands:
         raise SystemExit(f"missing build commands: {', '.join(missing_commands)}")
@@ -152,6 +152,17 @@ def build_portable_frontend() -> None:
     run(["npx", "tauri", "build", "--no-bundle", "--ci"], cwd=DESKTOP_DIR)
 
 
+def compress_appimage() -> None:
+    appimage = RELEASE_DIR / f"{RELEASE_NAME}.AppImage"
+    if not appimage.is_file():
+        return
+    run(["xz", "-T0", "-6", "-k", "-f", str(appimage)])
+    compressed = appimage.with_suffix(appimage.suffix + ".xz")
+    if compressed.stat().st_size >= 100 * 1024 * 1024:
+        raise SystemExit(f"compressed AppImage still exceeds GitHub's 100 MiB limit: {compressed}")
+    print(f"compressed AppImage: {compressed}")
+
+
 def copy_portable_frontend() -> Path:
     source = TAURI_DIR / "target" / "release" / PORTABLE_NAME
     if not source.is_file():
@@ -229,6 +240,8 @@ def main() -> None:
             build_tauri_bundles(formats)
             for artifact in copy_bundle_artifacts(formats):
                 print(f"bundle: {artifact}")
+            if "appimage" in formats:
+                compress_appimage()
 
         copy_portable_frontend()
         if not args.no_portable:

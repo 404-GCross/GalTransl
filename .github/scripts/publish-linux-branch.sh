@@ -16,7 +16,8 @@ if [[ ! -d "$ARTIFACT_DIR" ]]; then
 fi
 
 remote_url="${SERVER_URL}/${GITHUB_REPOSITORY}.git"
-if ! git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
+auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+if ! git -c http.extraheader="$auth_header" \
   ls-remote --exit-code --heads "$remote_url" "$BRANCH_NAME" >/dev/null 2>&1; then
   echo "remote branch '$BRANCH_NAME' does not exist; create it before running this workflow" >&2
   exit 1
@@ -67,5 +68,5 @@ git -C "$branch_dir" add -A
 git -C "$branch_dir" commit -m "Linux build ${GITHUB_SHA:0:7} (run ${GITHUB_RUN_NUMBER})"
 git -C "$branch_dir" remote add origin "$remote_url"
 git -C "$branch_dir" \
-  -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
+  -c http.extraheader="$auth_header" \
   push --force origin "HEAD:${BRANCH_NAME}"
